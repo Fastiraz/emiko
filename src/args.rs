@@ -7,7 +7,8 @@ use structopt::StructOpt;
   long_about = "Never Google a command again.\nEmiko is an assistant that can execute commands on your shell.\n\n\
   EXAMPLES:
     emiko -p 'List the content of ~/pwn folder.'
-    emiko -f --prompt 'Convert `test` string in hex.'"
+    emiko --force --prompt 'Convert `test` string in hex.'
+    emiko -fp 'display hello world'"
 )]
 pub struct Opt {
   #[structopt(
