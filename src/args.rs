@@ -4,10 +4,10 @@ use structopt::StructOpt;
 #[structopt(
   name = "emiko",
   about = "An assistant for your shell.",
-  long_about = "Emiko is an assistant that can execute commands on your shell\n\n\
+  long_about = "Never Google a command again.\nEmiko is an assistant that can execute commands on your shell.\n\n\
   EXAMPLES:
     emiko -p 'List the content of ~/pwn folder.'
-    emiko --prompt 'Write `pwn` in file.txt'"
+    emiko -f --prompt 'Convert `test` string in hex.'"
 )]
 pub struct Opt {
   #[structopt(
@@ -16,5 +16,11 @@ pub struct Opt {
     help = "Ask how to make something to Emiko."
   )]
   pub prompt: String,
-}
 
+  #[structopt(
+    short = "f",
+    long = "force",
+    help = "Bypass the Human CallBack Handler."
+  )]
+  pub force: bool,
+}
