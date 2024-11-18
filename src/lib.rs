@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use regex::Regex;
-use std::process::Stdio;
+use std::{io::Stdin, process::Stdio};
 use tokio::process::Command;
 use std::io::{self, Write};
 
@@ -99,5 +99,16 @@ pub async fn execute(command: String) -> String {
         }
       }
     }
+  }
+}
+
+pub fn human_callback_handler(command: String) {
+  println!("Do you want to execute the following command? [yes/no]\n\x1b[48;5;235m\x1b[91m{}\x1b[0m", command);
+
+  let mut input = String::new();
+  std::io::stdin().read_line(&mut input).expect("Failed to read line.");
+
+  if input.contains("n") {
+    panic!("Command execution aborted by user.");
   }
 }
