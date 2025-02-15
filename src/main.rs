@@ -7,20 +7,35 @@ mod args;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = args::Opt::from_args();
+  let mut prompt = args.prompt.clone();
+  let mut command = String::new();
+  let mut stdout;
 
-  let res = emiko::ask(args.prompt).await?;
+  loop {
+    let res = emiko::ask(prompt.clone()).await?;
 
-  if res.contains("```") {
-    let res_clone = res.clone();
-    let command = emiko::extract_command(res_clone);
+    if res.contains("```") {
+      command = emiko::extract_command(res.clone());
+    } else {
+      command = res;
+    }
+
+    if !args.force {
+      emiko::human_callback_handler(command.clone());
+    }
+
+    stdout = emiko::execute(command.clone()).await;
+    println!("{}", stdout);
+
+    if !stdout.starts_with("Error") {
+      break;
+    }
+
+    prompt = format!(
+      "Fix this error:\nInitial prompt:\n{}\nCommand:\n{}\n{}",
+      args.prompt, command, stdout
+    );
   }
 
-  if !args.force {
-    let res_clone = res.clone();
-    emiko::human_callback_handler(res_clone);
-  }
-
-  let stdout = emiko::execute(res).await;
-  println!("{}", stdout);
   Ok(())
 }
