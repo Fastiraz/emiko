@@ -53,21 +53,30 @@ fn get_config() -> Result<(String, String), String> {
   Ok((config.url, config.model))
 }
 
+fn get_env() -> Result<(String, String, String), String> {
+  Ok((
+    std::env::consts::OS.to_string(),
+    std::env::consts::ARCH.to_string(),
+    std::env::var("SHELL").map_err(|e| format!("{e}"))?,
+  ))
+}
+
 pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
   let (url, model) = get_config().unwrap();
+  let (os, arch, shell) = get_env().unwrap();
 
-  let preprompt = r#"
+  let preprompt = format!(r#"
     You are a shell assistant.
     Only return a single command and nothing else.
     This command will be automatically executed by a program.
 
-    Context: {context}
-    Question: {question}
-
     For example :
     Question: Write 'this is amazing!' in ~/Developer/test.txt file.
     Command: echo 'this is amazing!' > ~/Developer/test.txt
-  "#;
+
+    You are running on {} with {} architecture and {} shell.
+  "#,
+  os, arch, shell);
 
   let body = serde_json::json!({
     "model": model,
