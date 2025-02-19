@@ -1,9 +1,10 @@
-#![allow(unused_imports)]
+#![warn(unused_imports)]
+#![allow(non_snake_case)]
 
-use std::{io::Stdin, process::Stdio};
+use std::{process::Stdio};
 use serde_json::json;
 use tokio::process::Command;
-use std::io::{self, Write, Read};
+use std::io::{Write, Read};
 
 #[derive(serde::Deserialize)]
 struct Response {
@@ -65,9 +66,15 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
   let (url, model) = get_config().unwrap();
   let (os, arch, shell) = get_env().unwrap();
 
-  let preprompt = format!(r#"
-    You are a shell assistant.
-    Only return a single command and nothing else.
+  let DEFAULT = format!(r#"
+    You are programming and system administration assistant.
+    Provide only commands without any description.
+    If there is a lack of details, provide most logical solution.
+
+    Provide short responses in about 100 words, unless you are specifically asked for more details.
+    If you need to store any data, assume it will be stored in the conversation.
+
+    Ensure the output is a valid shell command.
     This command will be automatically executed by a program.
 
     For example :
@@ -78,9 +85,45 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
   "#,
   os, arch, shell);
 
+  let TEMPLATE_CHAIN_OF_COMMANDS = r#"
+    If you need to use multiple commands or if multiple steps required, try to combine them. Here's how.
+
+    # Chaining Commands
+
+    In many command-line interfaces, especially Unix-like systems, there are several characters that can be used to chain or manipulate commands.
+
+
+    * `;` (Semicolon): Allows you to execute multiple commands sequentially.
+    * `&&` (AND): Execute the second command only if the first command succeeds (returns a zero exit status).
+    * `||` (OR): Execute the second command only if the first command fails (returns a non-zero exit status).
+    * `&` (Background): Execute the command in the background, allowing the user to continue using the shell.
+    * `|` (Pipe):  Takes the output of the first command and uses it as the input for the second command.
+
+    ```powershell
+    command1; command2   # Execute command1 and then command2
+    command1 && command2 # Execute command2 only if command1 succeeds
+    command1 || command2 # Execute command2 only if command1 fails
+    command1 & command2  # Execute command1 in the background
+    command1 | command2  # Pipe the output of command1 into command2
+    ```
+  "#;
+
+  let ROLE_TEMPLATE = format!(
+    "You are {}.\n{}",
+    "emiko",
+    "An assistant like J.A.R.V.I.S. in Iron Man."
+  );
+
+  let preprompt = format!(
+    "{}\n\n{}\n\n{}",
+    ROLE_TEMPLATE,
+    DEFAULT,
+    TEMPLATE_CHAIN_OF_COMMANDS
+  );
+
   let body = serde_json::json!({
     "model": model,
-    "prompt": format!("{}\n{}", preprompt, prompt),
+    "prompt": format!("{}\n\n{}", preprompt, prompt),
     "stream": false
   });
 
