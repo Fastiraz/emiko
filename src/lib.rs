@@ -1,7 +1,7 @@
 #![warn(unused_imports)]
 #![allow(non_snake_case)]
 
-use std::{process::Stdio};
+use std::process::Stdio;
 use serde_json::json;
 use tokio::process::Command;
 use std::io::{Write, Read};
@@ -194,12 +194,13 @@ pub async fn execute(command: String) -> String {
 }
 
 pub fn human_callback_handler(command: String) {
-  println!("Do you want to execute the following command? [yes/no]\n\x1b[48;5;235m\x1b[91m{}\x1b[0m", command);
+  print!("Do you want to execute the following command? [yes/no]\n\x1b[48;5;235m\x1b[91m{}\x1b[0m\n> ", command);
+  std::io::stdout().flush().unwrap();
 
   let mut input = String::new();
   std::io::stdin().read_line(&mut input).expect("Failed to read line.");
 
-  if input.contains("n") {
+  if input.to_lowercase().contains('n') || input.is_empty() || input.starts_with('\n') {
     panic!("Command execution aborted by user.");
   }
 }

@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     stdout = emiko::execute(command.clone()).await;
-    println!("{}", stdout);
+    println!("\n{}", stdout);
 
     if !stdout.starts_with("Error") {
       break;

@@ -14,7 +14,7 @@ pub struct Opt {
   #[structopt(
     short = "p",
     long = "prompt",
-    help = "Ask how to make something to Emiko."
+    help = "Ask how to do something to Emiko."
   )]
   pub prompt: String,
 
