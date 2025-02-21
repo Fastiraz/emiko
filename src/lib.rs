@@ -204,3 +204,8 @@ pub fn human_callback_handler(command: String) {
     panic!("Command execution aborted by user.");
   }
 }
+
+pub fn update_clipboard(command: String) {
+  arboard::Clipboard::new().unwrap().set_text(command).unwrap();
+  println!("Command copied to clipboard!");
+}

@@ -1,11 +1,12 @@
 [package]
 name = "emiko"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Fastiraz"]
 description = "Emiko is an AI powered assistant that can execute commands on your shell."
 
 [dependencies]
+arboard = "3.4.1"
 regex = "1.11.1"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde = { version = "1.0.215", features = ["derive"] }

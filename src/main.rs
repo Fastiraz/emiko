@@ -1,6 +1,8 @@
 #![allow(unused)]
 #![warn(deprecated)]
 
+use std::process::exit;
+
 use structopt::StructOpt;
 mod args;
 
@@ -22,6 +24,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if !args.force {
       emiko::human_callback_handler(command.clone());
+    }
+
+    if args.clipboard {
+      emiko::update_clipboard(command.clone());
+      exit(0);
     }
 
     stdout = emiko::execute(command.clone()).await;

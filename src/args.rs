@@ -24,4 +24,11 @@ pub struct Opt {
     help = "Bypass the Human CallBack Handler."
   )]
   pub force: bool,
+
+  #[structopt(
+    short = "c",
+    long = "clipboard",
+    help = "Copy the generated command into the clipboard."
+  )]
+  pub clipboard: bool,
 }
