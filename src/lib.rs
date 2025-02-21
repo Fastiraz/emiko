@@ -1,10 +1,16 @@
 #![warn(unused_imports)]
 #![allow(non_snake_case)]
 
-use std::process::Stdio;
+use std::{
+  process::Stdio,
+  thread,
+  time::Duration,
+  io::{ self, Write, Read },
+  sync::{ Arc, Mutex },
+  thread::spawn
+};
 use serde_json::json;
 use tokio::process::Command;
-use std::io::{Write, Read};
 
 #[derive(serde::Deserialize)]
 struct Response {
@@ -62,7 +68,45 @@ fn get_env() -> Result<(String, String, String), String> {
   ))
 }
 
+fn start_loading_effect(loading_active: Arc<Mutex<bool>>) {
+  let spinner = vec![
+    // "|", "/", "-", "\\"
+    // "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"
+    // "⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ "
+    // "⢄", "⢂", "⢁", "⡁", "⡈", "⡐", "⡠"
+    // "█", "▓", "▒", "░"
+    // "∙∙∙", "●∙∙", "∙●∙", "∙∙●"
+    // "🌍", "🌎", "🌏"
+    // "🙈", "🙉", "🙊"
+    // "▱▱▱", "▰▱▱", "▰▰▱", "▰▰▰", "▰▰▱", "▰▱▱", "▱▱▱",
+    // "☱", "☲", "☴", "☲"
+    // "", ".", "..", "..."
+    "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"
+  ];
+  let mut i = 0;
+
+  while *loading_active.lock().unwrap() {
+    print!("\rGenerate command... {}", spinner[i % spinner.len()]);
+    io::stdout().flush().unwrap();
+    thread::sleep(Duration::from_millis(100));
+    i += 1;
+  }
+}
+
+fn stop_loading_effect(loading_active: &Arc<Mutex<bool>>) {
+  let mut active = loading_active.lock().unwrap();
+  *active = false;
+  print!("\n\r");
+}
+
 pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
+  let loading_active = Arc::new(Mutex::new(true));
+  let loading_active_clone = Arc::clone(&loading_active);
+
+  let handle = spawn(move || {
+    start_loading_effect(loading_active_clone);
+  });
+
   let (url, model) = get_config().unwrap();
   let (os, arch, shell) = get_env().unwrap();
 
@@ -131,6 +175,9 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
     .post(url)
     .json(&body)
     .send().await?;
+
+  stop_loading_effect(&loading_active);
+  handle.join().unwrap();
 
   match res.status().as_u16() {
     200 => {
