@@ -40,6 +40,7 @@ fn log(level: &str, message: &str) {
 }
 
 fn get_config() -> Result<(String, String), String> {
+  log("INFO", "Retrieving configuration.");
   let home_directory = std::env::var("HOME")
     .or_else(|_| std::env::var("USERPROFILE"))
     .unwrap_or_else(|_| "Unable to get your home dir!".to_string());
@@ -52,6 +53,7 @@ fn get_config() -> Result<(String, String), String> {
   config_path.set_extension("json");
 
   if !std::path::Path::new(&config_path).exists() {
+    log("WARNING", "Create configuration file.");
     println!("Create conf...");
     std::fs::create_dir_all(std::path::Path::new(&config_path).parent().unwrap()).unwrap();
     let cloned_config_path = config_path.clone();
@@ -77,6 +79,7 @@ fn get_config() -> Result<(String, String), String> {
 }
 
 fn get_env() -> Result<(String, String, String), String> {
+  log("INFO", "Retrieving environment informations.");
   Ok((
     std::env::consts::OS.to_string(),
     std::env::consts::ARCH.to_string(),
@@ -116,6 +119,7 @@ fn stop_loading_effect(loading_active: &Arc<Mutex<bool>>) {
 }
 
 pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
+  log("INFO", "Interrogating LLM.");
   let loading_active = Arc::new(Mutex::new(true));
   let loading_active_clone = Arc::clone(&loading_active);
 
@@ -197,10 +201,12 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
 
   match res.status().as_u16() {
     200 => {
+      log("INFO", "Successfully retrieve the response from LLM.");
       let answer: Response = res.json().await?;
       Ok(answer.response)
     },
     _ => {
+      log("ERROR", "Fail to retrieve response from Ollama.");
       panic!("Error while calling ollama.");
     }
   }
@@ -209,17 +215,21 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
 pub fn extract_command(answer: String) -> String {
   // let re = Regex::new(r"`{3}([\w]*)\n([\S\s]+?)\n`{3}").unwrap();
 
+  log("INFO", "Extracting command from LLM response.");
   let re = regex::Regex::new(r"```(?:\w*\n)?([\S\s]+?)\n```").unwrap();
 
   if let Some(captures) = re.captures(&answer) {
+    log("INFO", "Command extracted.");
     return captures.get(1).map_or("", |m| m.as_str()).to_string();
   }
 
+  log("ERROR", "No command found.");
   panic!("No command found sorry :/");
 }
 
 pub async fn execute(command: String) -> String {
   // dbg!(&command);
+  log("INFO", "Running command.");
   let output = Command::new("sh")
     .arg("-c")
     .arg(command)
@@ -233,6 +243,7 @@ pub async fn execute(command: String) -> String {
     true => {
       match String::from_utf8(output.stdout) {
         Ok(stdout_str) => {
+          log("INFO", "Command successfully executed.");
           stdout_str
         }
         Err(_) => {
@@ -245,6 +256,7 @@ pub async fn execute(command: String) -> String {
       match String::from_utf8(output.stderr) {
         Ok(stderr_str) => {
           let error_message = format!("Error: {}", stderr_str);
+          log("ERROR", "An error occurred while running the command.");
           error_message
         }
         Err(_) => {
@@ -257,6 +269,7 @@ pub async fn execute(command: String) -> String {
 }
 
 pub fn human_callback_handler(command: String) {
+  log("INFO", "Human callback handler");
   print!("Do you want to execute the following command? [yes/no]\n\x1b[48;5;235m\x1b[91m{}\x1b[0m\n> ", command);
   std::io::stdout().flush().unwrap();
 
@@ -264,11 +277,13 @@ pub fn human_callback_handler(command: String) {
   std::io::stdin().read_line(&mut input).expect("Failed to read line.");
 
   if input.to_lowercase().contains('n') || input.is_empty() || input.starts_with('\n') {
+    log("WARNING", "Command execution aborted by user.");
     panic!("Command execution aborted by user.");
   }
 }
 
 pub fn update_clipboard(command: String) {
   arboard::Clipboard::new().unwrap().set_text(command).unwrap();
+  log("INFO", "Command has been copied to the clipboard.");
   println!("Command copied to clipboard!");
 }
