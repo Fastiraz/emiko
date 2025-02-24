@@ -23,6 +23,22 @@ struct Config {
   model: String,
 }
 
+fn log(level: &str, message: &str) {
+  let mut file = std::fs::OpenOptions::new()
+    .create(true)
+    .append(true)
+    .open("file.log")
+    .expect("Failed to open log file");
+
+  let timestamp = std::time::SystemTime::now()
+    .duration_since(std::time::UNIX_EPOCH)
+    .expect("Time went backwards")
+    .as_secs();
+
+  writeln!(file, "[{}] {}: {}", timestamp, level, message)
+    .expect("Failed to write to log file");
+}
+
 fn get_config() -> Result<(String, String), String> {
   let home_directory = std::env::var("HOME")
     .or_else(|_| std::env::var("USERPROFILE"))
