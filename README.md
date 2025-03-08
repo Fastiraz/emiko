@@ -14,6 +14,21 @@ For example: `List me the content of ~/pwn folder.`.
 
 ## Installation
 
+### Install Ollama
+
+Emiko works with Ollama.
+You will need to install Ollama and at least one model to use Emiko.
+You can install Ollama [here](https://ollama.com/download).
+
+After a few tests, we recommend the `qwen2.5-coder` model.
+You can install it by running:
+
+```bash
+ollama pull qwen2.5-coder
+```
+
+If your machine is powerful enough, we recommend using the `qwen2.5-coder:14b` or `qwen2.5-coder:32b` model.
+
 ### Build from source
 
 ```bash
