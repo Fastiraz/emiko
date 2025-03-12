@@ -86,5 +86,6 @@ You can change the `model` attribute to use a different model or change the `url
 - [x] Support Ollama
 - [x] Human CallBack Handler
 - [x] Clipboard support
-- [ ] Support other providers
+- [x] Support other providers
+- [ ] Implement debug/verbose mode
 - [ ] Support images in prompt
