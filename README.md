@@ -37,7 +37,7 @@ If your machine is powerful enough, we recommend using the `qwen2.5-coder:14b` o
 cargo install --git https://github.com/fastiraz/emiko.git
 ```
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > If you have the following message after running the `cargo install` command, do not forget to add your cargo bin folder to your `PATH` to be able to run the installed binary.
 >
 > ```bash
@@ -80,3 +80,11 @@ emiko --version
 You can change the model by editing the `~/.config/emiko/emiko.json` file.
 This file will be created automatically by starting emiko for the first time.
 You can change the `model` attribute to use a different model or change the `url` attribute to use another ollama server.
+
+## Roadmap
+
+- [x] Support Ollama
+- [x] Human CallBack Handler
+- [x] Clipboard support
+- [ ] Support other providers
+- [ ] Support images in prompt
