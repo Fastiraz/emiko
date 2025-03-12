@@ -31,4 +31,11 @@ pub struct Opt {
     help = "Copy the generated command into the clipboard."
   )]
   pub clipboard: bool,
+
+  #[structopt(
+    short = "r",
+    long = "provider",
+    help = "Set a new provider for the next request."
+  )]
+  pub provider: Option<String>,
 }

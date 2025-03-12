@@ -2,25 +2,45 @@
 #![allow(non_snake_case)]
 
 use std::{
-  process::Stdio,
-  thread,
-  time::Duration,
-  io::{ self, Write, Read },
-  sync::{ Arc, Mutex },
-  thread::spawn
+  env::args, io::{
+    self,
+    Read,
+    Write
+  },
+  process::Stdio, sync::{
+    Arc,
+    Mutex
+  },
+  thread::{
+    self,
+    spawn
+  },
+  time::Duration
 };
-use serde_json::json;
+use serde_json::{ json, Value };
 use tokio::process::Command;
+use reqwest::header::{
+  HeaderMap,
+  HeaderValue,
+  AUTHORIZATION
+};
 
 #[derive(serde::Deserialize)]
 struct Response {
-  response: String,
+  message: Message,
+}
+
+#[derive(serde::Deserialize)]
+struct Message {
+  content: String,
 }
 
 #[derive(serde::Deserialize)]
 struct Config {
+  provider: String,
   url: String,
   model: String,
+  api_key: Option<String>,
 }
 
 fn log(level: &str, message: &str) {
@@ -50,7 +70,7 @@ fn log(level: &str, message: &str) {
     .expect("Failed to write to log file");
 }
 
-fn get_config() -> Result<(String, String), String> {
+fn get_config(provider: Option<&str>) -> Result<(String, String, Option<String>), String> {
   log("INFO", "Retrieving configuration.");
   let home_directory = std::env::var("HOME")
     .or_else(|_| std::env::var("USERPROFILE"))
@@ -71,8 +91,17 @@ fn get_config() -> Result<(String, String), String> {
     let mut file = std::fs::File::create(cloned_config_path).unwrap();
 
     let config_content = json!({
-      "url": "http://localhost:11434/api/generate",
-      "model": "llama3.2:latest"
+      "ollama": {
+        "provider": "ollama",
+        "model": "qwen2.5-coder:14b",
+        "url": "http://localhost:11434/api/generate"
+      },
+      "openai": {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "api_key": "YOUR_API_KEY"
+      }
     });
 
     let json_string = serde_json::to_string_pretty(&config_content).unwrap();
@@ -84,9 +113,16 @@ fn get_config() -> Result<(String, String), String> {
   let mut content = String::new();
   file.read_to_string(&mut content).map_err(|e| e.to_string())?;
 
-  let config: Config = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+  let json_config: Value = serde_json::from_str(&content).map_err(|e| e.to_string())?;
 
-  Ok((config.url, config.model))
+  let provider_name = provider.unwrap_or("ollama");
+
+  if let Some(entry) = json_config.get(provider_name) {
+    let config_entry: Config = serde_json::from_value(entry.clone()).map_err(|e| e.to_string())?;
+    Ok((config_entry.url, config_entry.model, config_entry.api_key))
+  } else {
+    Err(format!("Provider '{}' not found in config", provider_name))
+  }
 }
 
 fn get_env() -> Result<(String, String, String), String> {
@@ -129,7 +165,7 @@ fn stop_loading_effect(loading_active: &Arc<Mutex<bool>>) {
   print!("\n\r");
 }
 
-pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn ask(prompt: String, provider: Option<String>) -> Result<String, Box<dyn std::error::Error>> {
   log("INFO", "Interrogating LLM.");
   let loading_active = Arc::new(Mutex::new(true));
   let loading_active_clone = Arc::clone(&loading_active);
@@ -138,7 +174,11 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
     start_loading_effect(loading_active_clone);
   });
 
-  let (url, model) = get_config().unwrap();
+  let (
+    url,
+    model,
+    api_key,
+  ) = get_config(provider.as_deref()).unwrap();
   let (os, arch, shell) = get_env().unwrap();
 
   let DEFAULT = format!(r#"
@@ -196,14 +236,26 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
     TEMPLATE_CHAIN_OF_COMMANDS
   );
 
+  let mut headers = HeaderMap::new();
+  if let Some(api_key) = api_key {
+    let auth_value = format!("Bearer {}", api_key);
+    headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_value).unwrap());
+  }
+
   let body = serde_json::json!({
     "model": model,
-    "prompt": format!("{}\n\n{}", preprompt, prompt),
+    "messages": [
+      {
+        "role": "user",
+        "content": format!("{}\n\n{}", preprompt, prompt),
+      }
+    ],
     "stream": false
   });
 
   let res = reqwest::Client::new()
     .post(url)
+    .headers(headers)
     .json(&body)
     .send().await?;
 
@@ -214,7 +266,7 @@ pub async fn ask(prompt: String) -> Result<String, Box<dyn std::error::Error>> {
     200 => {
       log("INFO", "Successfully retrieve the response from LLM.");
       let answer: Response = res.json().await?;
-      Ok(answer.response)
+      Ok(answer.message.content)
     },
     _ => {
       log("ERROR", "Fail to retrieve response from Ollama.");

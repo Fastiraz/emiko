@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut stdout;
 
   loop {
-    let res = emiko::ask(prompt.clone()).await?;
+    let res = emiko::ask(prompt.clone(), args.provider.clone()).await?;
 
     if res.contains("```") {
       command = emiko::extract_command(res.clone());
