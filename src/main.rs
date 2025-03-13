@@ -5,16 +5,17 @@ use std::process::exit;
 
 use structopt::StructOpt;
 mod args;
+use emiko::args::Opt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let args = args::Opt::from_args();
+  let args = Opt::from_args();
   let mut prompt = args.prompt.clone();
   let mut command = String::new();
   let mut stdout;
 
   loop {
-    let res = emiko::ask(prompt.clone(), args.provider.clone()).await?;
+    let res = emiko::ask(&args).await?;
 
     if res.contains("```") {
       command = emiko::extract_command(res.clone());
@@ -22,7 +23,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
       command = res;
     }
 
+    if args.debug {
+      dbg!(command.clone());
+    }
+
     if !args.force {
+      if args.debug {
+        dbg!(args.force.clone());
+      }
       emiko::human_callback_handler(command.clone());
     }
 

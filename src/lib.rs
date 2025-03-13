@@ -1,8 +1,12 @@
 #![warn(unused_imports)]
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 
+pub mod args;
+use crate::args::Opt;
 use std::{
-  env::args, io::{
+  // env::args,
+  io::{
     self,
     Read,
     Write
@@ -165,7 +169,15 @@ fn stop_loading_effect(loading_active: &Arc<Mutex<bool>>) {
   print!("\n\r");
 }
 
-pub async fn ask(prompt: String, provider: Option<String>) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn ask(args: &Opt) -> Result<String, Box<dyn std::error::Error>> {
+  let prompt = &args.prompt.clone();
+  let provider = &args.provider.clone();
+
+  if args.debug {
+    dbg!(prompt.clone());
+    dbg!(provider.clone());
+  }
+
   log("INFO", "Interrogating LLM.");
   let loading_active = Arc::new(Mutex::new(true));
   let loading_active_clone = Arc::clone(&loading_active);
@@ -179,7 +191,20 @@ pub async fn ask(prompt: String, provider: Option<String>) -> Result<String, Box
     model,
     api_key,
   ) = get_config(provider.as_deref()).unwrap();
+
+  if args.debug {
+    dbg!(url.clone());
+    dbg!(model.clone());
+    dbg!(api_key.clone());
+  }
+
   let (os, arch, shell) = get_env().unwrap();
+
+  if args.debug {
+    dbg!(os.clone());
+    dbg!(arch.clone());
+    dbg!(shell.clone());
+  }
 
   let DEFAULT = format!(r#"
     You are programming and system administration assistant.
@@ -252,6 +277,11 @@ pub async fn ask(prompt: String, provider: Option<String>) -> Result<String, Box
     ],
     "stream": false
   });
+
+  if args.debug {
+    dbg!(headers.clone());
+    dbg!(body.clone());
+  }
 
   let res = reqwest::Client::new()
     .post(url)

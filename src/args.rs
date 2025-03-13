@@ -38,4 +38,12 @@ pub struct Opt {
     help = "Set a new provider for the next request."
   )]
   pub provider: Option<String>,
+
+  #[structopt(
+    short = "d",
+    long = "debug",
+    alias = "verbose",
+    help = "Enable the debug mode."
+  )]
+  pub debug: bool,
 }

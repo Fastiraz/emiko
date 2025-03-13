@@ -87,5 +87,5 @@ You can change the `model` attribute to use a different model or change the `url
 - [x] Human CallBack Handler
 - [x] Clipboard support
 - [x] Support other providers
-- [ ] Implement debug/verbose mode
+- [x] Implement debug/verbose mode
 - [ ] Support images in prompt
