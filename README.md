@@ -44,7 +44,7 @@ cargo install --git https://github.com/fastiraz/emiko.git
 > warning: be sure to add `~/.cargo/bin` to your PATH to be able to run the installed binaries
 > ```
 >
-> Add the followinf line to your `.<shell>rc` file.
+> Add the following line to your `.<shell>rc` file.
 > ```bash
 > export PATH="$HOME/.cargo/bin:$PATH"
 > ```
