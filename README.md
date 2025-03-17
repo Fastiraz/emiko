@@ -1,9 +1,11 @@
+![](assets/EMIKO-rmbg.png)
+
 <div align="center">
   <h1><code>emiko</code></h1>
   <p>Never Google a command again.</p>
 </div>
 
-![](emiko.gif)
+![](assets/emiko.gif)
 
 ---
 
