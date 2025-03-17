@@ -1,7 +1,10 @@
-![](assets/EMIKO-rmbg.png)
+<div align="center">
+  <!-- ![](assets/EMIKO-rmbg.png) -->
+  <img src="assets/EMIKO-rmbg.png">
+</div>
 
 <div align="center">
-  <h1><code>emiko</code></h1>
+  <!-- <h1><code>emiko</code></h1> -->
   <p>Never Google a command again.</p>
 </div>
 
