@@ -31,7 +31,8 @@ pub struct RAG {
   documents: Vec<Document>,
   embedding_model: String,
   embedding_url: String,
-  embed: String
+  embed: String,
+  chunks: Vec<String>
 }
 
 
@@ -40,15 +41,21 @@ impl RAG {
     let mut instance = RAG {
       dataset_path: String::new(),
       documents: Vec::new(),
-      embedding_model: "nomic-embed-text:latest".to_string(),
+      embedding_model: "mxbai-embed-large:latest".to_string(),
       embedding_url: "http://localhost:11434/api/embed".to_string(),
-      embed: String::new()
+      embed: String::new(),
+      chunks: Vec::new()
     };
 
     instance.create_datasets_directory();
     return instance
   }
 
+
+  /**
+   * this function create a datasets
+   * folder if not already exists
+   */
   fn create_datasets_directory(&mut self) {
     let home_directory: String = std::env::var("HOME")
       .or_else(|_| std::env::var("USERPROFILE"))
@@ -68,6 +75,11 @@ impl RAG {
     self.dataset_path = datasets_path.to_str().unwrap().to_string();
   }
 
+
+  /**
+   * this function load data from
+   * datasets into a Document Vector
+   */
   pub fn loader(&mut self, recursive: bool) -> Vec<Document> {
     let entries: Vec<PathBuf> = fs::read_dir(&self.dataset_path)
       .unwrap()
@@ -110,4 +122,30 @@ impl RAG {
     return self.documents.clone()
   }
 
+
+  /**
+   * semantic chunking
+   * max size = 65535
+   */
+  pub fn chunk(&mut self, chunk_size: u16) -> Vec<String> {
+    let separators: [&str; 7] = ["\n\n", "\n", " ", "", "! ", "? ", ". "];
+
+    self.chunks.clear();
+
+    for document in &self.documents {
+      let mut doc_chunks = vec![document.page_content.clone()];
+
+      for separator in &separators {
+        doc_chunks = doc_chunks
+          .into_iter()
+          .flat_map(|chunk| chunk.split(separator).map(String::from).collect::<Vec<String>>())
+          .filter(|s| !s.is_empty())
+          .collect();
+      }
+
+      self.chunks.extend(doc_chunks);
+    }
+
+    self.chunks.clone()
+  }
 }

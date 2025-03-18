@@ -177,6 +177,7 @@ pub async fn ask(args: &Opt) -> Result<String, Box<dyn std::error::Error>> {
 
   let mut rag = RAG::new();
   let _ = rag.loader(true);
+  let _ = rag.chunk(1000);
 
   if args.debug {
     dbg!(prompt.clone());
