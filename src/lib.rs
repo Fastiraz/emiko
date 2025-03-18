@@ -4,6 +4,8 @@
 
 pub mod args;
 use crate::args::Opt;
+mod rag;
+use rag::rag::RAG;
 use std::{
   // env::args,
   io::{
@@ -172,6 +174,9 @@ fn stop_loading_effect(loading_active: &Arc<Mutex<bool>>) {
 pub async fn ask(args: &Opt) -> Result<String, Box<dyn std::error::Error>> {
   let prompt = &args.prompt.clone();
   let provider = &args.provider.clone();
+
+  let mut rag = RAG::new();
+  let _ = rag.loader(true);
 
   if args.debug {
     dbg!(prompt.clone());
