@@ -2,14 +2,14 @@
 #![warn(deprecated)]
 
 use std::process::exit;
+use clap::Parser;
 
-use structopt::StructOpt;
 mod args;
 use emiko::args::Opt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let args = Opt::from_args();
+  let args = Opt::parse();
   let mut prompt = args.prompt.clone();
   let mut command = String::new();
   let mut stdout;
