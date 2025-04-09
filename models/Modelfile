@@ -1,0 +1,155 @@
+FROM qwen2.5-coder:14b
+
+
+# ADAPTER ./ollama-lora.gguf
+
+
+# mirostat sampling disabled by default (set to 0); 1 enables Mirostat and 2 enables Mirostat 2.0
+# PARAMETER mirostat 0
+
+# Learning rate for the Mirostat feedback algorithm (default: 0.1)
+# PARAMETER mirostat_eta 0.1
+
+# Balances coherence and diversity in the output (default: 5.0)
+# PARAMETER mirostat_tau 5.0
+
+# Sets the context window size used to generate tokens (default: 2048)
+# PARAMETER num_ctx 2048
+
+# Configures how far back the model looks to penalize repetition (default: 64; 0 disables and -1 sets it equal to num_ctx)
+# PARAMETER repeat_last_n 64
+
+# Defines the strength of the penalty on token repetition (default: 1.1)
+# PARAMETER repeat_penalty 1.1
+
+# Temperature controls the randomness of generation (default: 0.8)
+PARAMETER temperature 1
+
+# The random seed to use for text generation (default: 0)
+# PARAMETER seed 0
+
+# Stop sequences: There is no built‑in default value.
+# PARAMETER stop "<sequence>"
+# You can specify one or more stop sequences. For example:
+# PARAMETER stop "AI assistant:"
+
+# Maximum number of tokens to predict (-1 indicates unlimited generation by default)
+# PARAMETER num_predict -1
+
+# Top-K sampling parameter to reduce nonsense output (default: 40)
+# PARAMETER top_k 40
+
+# Top-P (nucleus) sampling parameter for balanced diversity (default: 0.9)
+# PARAMETER top_p 0.9
+
+# Minimum probability threshold for token selection (default: 0.0)
+# PARAMETER min_p 0.05
+
+
+
+
+
+
+# sets a custom system message to specify the behavior of the chat assistant
+SYSTEM """
+You are Emiko.
+An assistant like J.A.R.V.I.S. in Iron Man.
+You are programming and system administration assistant.
+Provide only commands without any description.
+If there is a lack of details, provide most logical solution.
+
+Provide short responses in about 100 words, unless you are specifically asked for more details.
+If you need to store any data, assume it will be stored in the conversation.
+
+Ensure the output is a valid shell command.
+This command will be automatically executed by a program.
+
+For example :
+Question: Write 'this is amazing!' in ~/Developer/test.txt file.
+Command: echo 'this is amazing!' > ~/Developer/test.txt
+
+If you need to use multiple commands or if multiple steps required, try to combine them. Here's how.
+
+# Chaining Commands
+
+In many command-line interfaces, especially Unix-like systems, there are several characters that can be used to chain or manipulate commands.
+
+* `;` (Semicolon): Allows you to execute multiple commands sequentially.
+* `&&` (AND): Execute the second command only if the first command succeeds (returns a zero exit status).
+* `||` (OR): Execute the second command only if the first command fails (returns a non-zero exit status).
+* `&` (Background): Execute the command in the background, allowing the user to continue using the shell.
+* `|` (Pipe):  Takes the output of the first command and uses it as the input for the second command.
+
+```powershell
+command1; command2   # Execute command1 and then command2
+command1 && command2 # Execute command2 only if command1 succeeds
+command1 || command2 # Execute command2 only if command1 fails
+command1 & command2  # Execute command1 in the background
+command1 | command2  # Pipe the output of command1 into command2
+```"""
+
+
+TEMPLATE """{{- if .Suffix }}<|fim_prefix|>{{ .Prompt }}<|fim_suffix|>{{ .Suffix }}<|fim_middle|>
+{{- else if .Messages }}
+{{- if or .System .Tools }}<|im_start|>system
+{{- if .System }}
+{{ .System }}
+{{- end }}
+{{- if .Tools }}
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{{- range .Tools }}
+{"type": "function", "function": {{ .Function }}}
+{{- end }}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call>
+{{- end }}<|im_end|>
+{{ end }}
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+{{- if eq .Role "user" }}<|im_start|>user
+{{ .Content }}<|im_end|>
+{{ else if eq .Role "assistant" }}<|im_start|>assistant
+{{ if .Content }}{{ .Content }}
+{{- else if .ToolCalls }}<tool_call>
+{{ range .ToolCalls }}{"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}
+{{ end }}</tool_call>
+{{- end }}{{ if not $last }}<|im_end|>
+{{ end }}
+{{- else if eq .Role "tool" }}<|im_start|>user
+<tool_response>
+{{ .Content }}
+</tool_response><|im_end|>
+{{ end }}
+{{- if and (ne .Role "assistant") $last }}<|im_start|>assistant
+{{ end }}
+{{- end }}
+{{- else }}
+{{- if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ end }}{{ .Response }}{{ if .Response }}<|im_end|>{{ end }}"""
+
+
+MESSAGE user Write 'this is amazing!' in test.txt file.
+MESSAGE assistant echo 'this is amazing!' > test.txt
+MESSAGE user What's the size of ~/Developer directory?
+MESSAGE assistant du -sh ~/Developer
+MESSAGE user Build the Docker image by naming it secret and then run it.
+MESSAGE assistant docker build -t secret . && docker run secret
+
+
+LICENSE """
+<license text>
+"""
