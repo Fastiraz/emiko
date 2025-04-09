@@ -49,7 +49,7 @@ pub struct Opt {
   pub clipboard: bool,
 
   #[arg(
-    short = 'r',
+    short = 'o',
     long = "provider",
     help = "Set a new provider for the next request."
   )]
@@ -62,4 +62,11 @@ pub struct Opt {
     help = "Enable the debug mode."
   )]
   pub debug: bool,
+
+  #[arg(
+    short = 'r',
+    long = "rag",
+    help = "Enable the RAG mode."
+  )]
+  pub rag: bool,
 }

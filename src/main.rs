@@ -3,16 +3,27 @@
 
 use std::process::exit;
 use clap::Parser;
-
 mod args;
 use emiko::args::Opt;
+use rag::rag::RAG;
+mod rag;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let args = Opt::parse();
+  let mut args = Opt::parse();
   let mut prompt = args.prompt.clone();
   let mut command = String::new();
   let mut stdout;
+
+  // if args.rag {
+  //   let mut rag: RAG = RAG::new();
+  //   let documents = rag.loader(true);
+  //   let embeddings = rag.embeddings().await?;
+  //   args.prompt = format!(r#"
+  //     Using this data: {:?}. Respond to this prompt: {}
+  //   "#,
+  //   embeddings, prompt);
+  // }
 
   loop {
     let res = emiko::ask(&args).await?;
