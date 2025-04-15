@@ -19,6 +19,7 @@ const STYLES: Styles = Styles::styled()
 #[command(
   styles=STYLES,
   name = "emiko",
+  version = env!("CARGO_PKG_VERSION"),
   about = "An assistant for your shell.",
   long_about = "Never Google a command again.\nEmiko is an assistant that can execute commands on your shell.\n\n\
   EXAMPLES:
