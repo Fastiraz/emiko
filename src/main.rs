@@ -7,6 +7,8 @@ mod args;
 use emiko::args::Opt;
 use rag::rag::RAG;
 mod rag;
+// use memory::memory::learn;
+mod memory;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -54,6 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n{}", stdout);
 
     if !stdout.starts_with("Error") {
+      memory::memory::learn(args.prompt.clone(), command, stdout);
       break;
     }
 
@@ -61,6 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
       "Fix this error:\nInitial prompt:\n{}\nCommand:\n{}\n{}",
       args.prompt, command, stdout
     );
+    memory::memory::learn(args.prompt.clone(), command, stdout);
   }
 
   Ok(())

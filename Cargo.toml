@@ -1,6 +1,6 @@
 [package]
 name = "emiko"
-version = "0.2.4-pre-alpha"
+version = "0.3.0-pre-alpha"
 edition = "2021"
 authors = ["Fastiraz"]
 description = "Emiko is an AI powered assistant that can execute commands on your shell."
