@@ -242,8 +242,6 @@ pub async fn ask(args: &Opt) -> Result<String, Box<dyn std::error::Error>> {
     TEMPLATE_CHAIN_OF_COMMANDS
   );
 
-  dbg!(preprompt.clone());
-
   let mut headers = HeaderMap::new();
   if let Some(api_key) = api_key {
     let auth_value = format!("Bearer {}", api_key);
