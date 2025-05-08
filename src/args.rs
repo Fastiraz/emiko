@@ -70,4 +70,11 @@ pub struct Opt {
     help = "Enable the RAG mode."
   )]
   pub rag: bool,
+
+  #[arg(
+    short = 'q',
+    long = "question",
+    help = "Question a chatbot."
+  )]
+  pub question: bool,
 }

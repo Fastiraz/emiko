@@ -136,7 +136,7 @@ fn start_loading_effect(loading_active: Arc<Mutex<bool>>) {
   let mut i = 0;
 
   while *loading_active.lock().unwrap() {
-    print!("\rGenerate command... {}", spinner[i % spinner.len()]);
+    print!("\rThinking... {}", spinner[i % spinner.len()]);
     io::stdout().flush().unwrap();
     thread::sleep(Duration::from_millis(100));
     i += 1;

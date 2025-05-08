@@ -27,6 +27,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   //   embeddings, prompt);
   // }
 
+  if args.question {
+    prompt = format!(
+      "[QUESTION MODE]\n\
+      You are in question mode.\n\
+      Only respond to that user's question.\n\
+      In this mode, you are a simple chatbot and you don't generate commands.\n\
+      Answer short and simple sentences.
+      {}",
+      prompt
+    );
+    args.prompt = prompt.clone();
+    let res = emiko::ask(&args).await?;
+    println!("{}", res);
+    return Ok(());
+  }
+
   loop {
     let res = emiko::ask(&args).await?;
 
@@ -67,5 +83,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     memory::memory::learn(args.prompt.clone(), command, stdout);
   }
 
-  Ok(())
+  return Ok(())
 }

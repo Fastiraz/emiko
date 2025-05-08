@@ -93,4 +93,6 @@ You can change the `model` attribute to use a different model or change the `url
 - [x] Clipboard support
 - [x] Support other providers
 - [x] Implement debug/verbose mode
+- [x] Chatbot
 - [ ] Support images in prompt
+- [ ] Retrieval-augmented generation (RAG)
