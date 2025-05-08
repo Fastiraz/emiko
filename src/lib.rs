@@ -78,7 +78,7 @@ fn get_config(provider: Option<&str>) -> Result<(String, String, Option<String>)
       "ollama": {
         "provider": "ollama",
         "model": "qwen2.5-coder:14b",
-        "url": "http://localhost:11434/api/generate"
+        "url": "http://localhost:11434/api/chat"
       },
       "openai": {
         "provider": "openai",
