@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "emiko"
-version = "0.3.1-pre-alpha"
+version = "0.4.2-pre-alpha"
 dependencies = [
  "arboard",
  "clap",
