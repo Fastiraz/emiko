@@ -12,6 +12,14 @@ pub fn log(level: &str, message: &str) {
   log_path.push("emiko");
   log_path.set_extension("log");
 
+  if !std::path::Path::new(&log_path).exists() {
+    dbg!("Create log file...");
+    std::fs::create_dir_all(
+      log_path.parent()
+        .expect("Failed to get parent directory")
+    ).expect("Failed to create directories");
+  }
+
   let mut file = std::fs::OpenOptions::new()
     .create(true)
     .append(true)
